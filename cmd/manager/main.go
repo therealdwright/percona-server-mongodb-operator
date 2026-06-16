@@ -15,12 +15,14 @@ import (
 	"github.com/go-logr/logr"
 	uzap "go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	corev1 "k8s.io/api/core/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/discovery"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsServer "sigs.k8s.io/controller-runtime/pkg/metrics/server"
@@ -102,6 +104,12 @@ func main() {
 		WebhookServer: webhook.NewServer(webhook.Options{
 			Port: 9443,
 		}),
+		Client: client.Options{
+			Scheme: scheme,
+			Cache: &client.CacheOptions{
+				DisableFor: []client.Object{&corev1.Node{}},
+			},
+		},
 	}
 
 	options.Controller.GroupKindConcurrency = map[string]int{
